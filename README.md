@@ -3,6 +3,10 @@ This is minimal product which can work. There are some necessary things, which I
 
 ## How to use
 
+```
+./key_storage help
+```
+
 Firstly, you need to initiate the storage in your current directory.
 ```
 ./key_storage init
@@ -12,6 +16,7 @@ Adding:
 ```
 ./key_storage add <site> <login> <password>
 ```
+adds the given line
 
 Showing:
 ```
@@ -23,10 +28,17 @@ Removing:
 ```
 ./key_storage remove <site> <login> <password>
 ```
+removes the given line
+
+Generating a password:
+```
+./key_storage keygen <len>
+```
+generates the password with given len
 
 ## TODO
 
 1. Add an ability to cyphering the passwords (or file)
-2. Add an ability to generate secure passwords
+2. Add an ability to change settings for password generating
 3. Add an ability to store not only passwords but hashes, keys, tokens, etc.
 4. (maybe) Add a gui
