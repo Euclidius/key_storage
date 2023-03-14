@@ -20,6 +20,14 @@ pub mod db_interaction {
         }
     }
 
+    pub fn parse_pass(env_args: &[String]) -> Pass {
+        if env_args.len() < 3 {
+            eprintln!("Error: not enough arguments for command");
+            std::process::exit(1);
+        }
+        return Pass::new(env_args[0].to_string(), env_args[1].to_string(), env_args[2].to_string());
+    }
+
     //connects to db. if not exist, creates file of it
     pub fn make_connection(path:&String) -> Result<Connection, rusqlite::Error> {
         Connection::open(path)

@@ -1,20 +1,15 @@
 pub mod interface {
     use std::env;
-    use rusqlite::Connection;
 
-    use crate::db_interaction::db_interaction;
-/*
-TODO write a function, which would incapsulate this module
- */
+    use crate::commands::commands;
 
-/*
-TODO rewrite this module with GUI with gtk4 (MUCH MUCH LATER)
- */
     pub enum Command {
         Init,
         Add,
         Show,
         Remove,
+        Keygen,
+        Help,
         Error
     }
 
@@ -24,7 +19,7 @@ TODO rewrite this module with GUI with gtk4 (MUCH MUCH LATER)
 
     pub fn check_env_args(env_args: &Vec<String>) {
         if env_args.len() < 2 {
-            eprintln!("Usage is \"key_storage <command> <arguments for command>\"");
+            eprintln!("Usage is \"key_storage <command> <arguments for command>\". \nTry \"key_storage help\".");
             std::process::exit(1);
         }
     }
@@ -36,6 +31,8 @@ TODO rewrite this module with GUI with gtk4 (MUCH MUCH LATER)
             "add" => {Command::Add}
             "show" => {Command::Show}
             "remove" => {Command::Remove}
+            "keygen" => {Command::Keygen}
+            "help" => {Command::Help}
             _ => {Command::Error}
         }
     }
@@ -44,98 +41,44 @@ TODO rewrite this module with GUI with gtk4 (MUCH MUCH LATER)
         &env_args[2..]
     }
 
-    fn parse_pass(env_args: &[String]) -> db_interaction::Pass {
-        if env_args.len() < 3 {
-            eprintln!("Error: not enough arguments for command");
-            std::process::exit(1);
-        }
-        return db_interaction::Pass::new(env_args[0].to_string(), env_args[1].to_string(), env_args[2].to_string());
-    }
-
-    fn command_init() -> Result<Connection, rusqlite::Error> {
-        let conn = connect();
-        let stat = match conn {
-            Ok(connection) => {connection},
-            Err(e) => {return Err(e)},
-        };
-        let creating = db_interaction::create_table(&stat);
-        match creating{
-            Ok(_) => {return Ok(stat)},
-            Err(e) => {return Err(e)}
-
-        }
-    }
-
-    fn connect() -> Result<rusqlite::Connection, rusqlite::Error> {
-        return db_interaction::make_connection(&String::from(".passwords.db3"));
-    }
-
-    fn command_add(command_args: &[String]) -> Result<usize, rusqlite::Error> {
-        let pass = parse_pass(command_args);
-        let conn = connect();
-        let stat = match conn {
-            Ok(connection) => {connection},
-            Err(e) => {return Err(e)},
-        };
-        db_interaction::insert_in_table(&stat, &pass)
-    }
-
-    fn command_show(command_args: &[String]) -> Result<i32, rusqlite::Error>{
-        if command_args.len() < 1 {
-            eprintln!("Error: not enough arguments to this command");
-            std::process::exit(1);
-        }
-        let site = command_args[0].to_string();
-        let conn = connect();
-        let stat = match conn {
-            Ok(connection) => {connection},
-            Err(e) => {return Err(e)},
-        };
-        db_interaction::print_passes_from_site(&stat, &site);
-        return Ok(0);
-    }
-
-    fn command_remove(command_args: &[String]) -> Result<usize, rusqlite::Error> {
-        let pass = parse_pass(command_args);
-        let conn = connect();
-        let stat = match conn {
-            Ok(connection) => {connection},
-            Err(e) => {return Err(e)},
-        };
-        db_interaction::remove_from_table(&stat, &pass)
-    }
-
     pub fn do_interaction(command:Command, command_args: &[String]) {
 
         match command {
             Command::Init => {
-                let status = command_init();
+                let status = commands::command_init();
                 match status {
                     Ok(_) => {}
                     Err(_) => {eprintln!("Error: something gone wrong when tried to create database")}
                 }
             }
             Command::Add => {
-                match command_add(&command_args) {
+                match commands::command_add(&command_args) {
                     Ok(_) => {}
                     Err(_) => {eprintln!("Error: unable to add to database");
                     }
                 }
             }
             Command::Show => {
-                match command_show(&command_args) {
+                match commands::command_show(&command_args) {
                     Ok(_) => {}
                     Err(_) => {eprintln!("Error: unable to read from database")}
                 }
             }
             Command::Remove => {
-                match command_remove(&command_args) {
+                match commands::command_remove(&command_args) {
                     Ok(_) => {}
                     Err(_) => {eprintln!("Error: unable to remove from database")}
                 }
             }
+            Command::Keygen => {
+                let password = commands::command_keygen(&command_args);
+                println!("{}", password);
+            }
+            Command::Help => {
+                commands::print_help();
+            }
             _ => {
-                eprintln!("Error: check the name of the command.");
+                eprintln!("Error: check the name of the command.\nTry \"key_storage help\".");
             }
         }
     }
